@@ -1,33 +1,8 @@
 #!/bin/bash
 
-CHIA_DIR=/home/warren/Documents/chia-blockchain
+CHIA_DIR=/root/chia-blockchain
 DRY_RUN=true
-while [[ $# -gt 0 ]]
-do
-	key="$1"
-	case $key in
-		-t|--thread)
-			THREAD="$2"
-			shift
-			shift
-			;;
-		-d|--dir)
-			CHIA_DIR="$2"
-			shift
-			shift
-			;;
-		-p|--prod)
-			DRY_RUN=false
-			shift
-			;;
-	esac
-done
-
-if [ -z ${THREAD} ]
-then
-	echo "ID is unset, exit"
-	return 0
-fi
+THREAD=3
 
 echo "Number of threads: $THREAD"
 echo "Chia blockchain absolute path: $CHIA_DIR"
@@ -37,27 +12,17 @@ for ((i=i;i<$THREAD;i++))
 do
 
 SESSION_NAME=test$i
+UPLOAD_SESSION=upload$i
 echo "Session name is: $SESSION_NAME"
 
 # Open a new tmux session in the back ground
 tmux new -s $SESSION_NAME -d
+tmux new -s $UPLOAD_SESSION -d
 
 # Open chia blockchain folder
 tmux send -t $SESSION_NAME "cd $CHIA_DIR" ENTER
 
-# Start chia
-if [ "$DRY_RUN" = true ]
-then
-	echo "====== execute command ======"
-	echo ". ./activate && sleep ${i}h && chia plots create -k 32 -b 6500 -r 2 -u 128 -n 8 -t /mnt/ssd0/tmp${i} -d /mnt/hdd2/chia_final |tee /home/warren/Documents/chialogs/chia${i}.log"
-	echo "============ end ============"
-	tmux kill-session -t $SESSION_NAME
-else
-	# Clean up temp folder, it might contains residual.
-	rm -r /mnt/ssd/tmp$ID
-	mkdir -p /mnt/ssd0/tmp$ID
-	mkdir -p $CHIA_DIR/chialogs
-	tmux send -t $SESSION_NAME ". ./activate && sleep ${i}h && chia plots create -k 32 -b 6500 -r 2 -u 128 -n 8 -t /mnt/ssd0/tmp${i} -d /mnt/hdd2/chia_final |tee ${CHIA_DIR}/chialogs/chia${i}.log" ENTER
-fi
-
+mkdir -p /root/tmp$i
+mkdir -p /root/chia/final$i
+tmux send -t $SESSION_NAME ". ./activate && sleep ${i}h && for i in {1..50}; do chia plots create -k 32 -b 12000 -r 5 -u 128 -n 1 -t /root/tmp${i} -d /root/chia/final${i} | tee /root/chia${i}.log && FILE=$(cd /root/chia/final${i} && ls *.plot) && IP=$(curl ip.me) && tmux send -t $UPLOAD_SESSION \"ssh homer@hp.qingtan.ltd 'cd /home/homer/Chia/plots && curl $IP/final${i}/$FILE -O' ENTER; done" ENTER
 done
