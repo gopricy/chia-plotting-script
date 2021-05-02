@@ -1,1 +1,1 @@
-chia plots create -k 32 -b 14000 -r 4 -u 128 -n 1 -t /home/boninggao/tmp -d /home/boninggao/final | tee /home/boninggao/chia$1.log
+chia plots create -k 32 -b 7000 -r 2 -u 128 -n 1 -t /home/boning/ssd/temp -d /home/boning/ssd/final | tee /home/boning/chia$1.log

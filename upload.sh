@@ -1,1 +1,1 @@
-rsync -zP /home/boninggao/final/* homer@hp.qingtan.ltd:/home/homer/Chia/plots/ && rm -f /home/boninggao/final/*
+rclone -v copy /home/boning/ssd/final/* od:/Chia/ && rm -f /home/boning/ssd/final/*
